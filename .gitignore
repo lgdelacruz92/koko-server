@@ -1,0 +1,11 @@
+node_modules/
+census-20-to-24.json
+census-20-to-24.ndjson
+counties-census-color.ndjson
+counties-census-color.svg
+counties-census-join.ndjson
+counties-geo.json
+counties-geo.ndjson
+output.sql
+koko.db
+koko-bk.db
