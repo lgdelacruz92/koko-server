@@ -43,7 +43,7 @@ exports.makeSvg = {
         const sqlQuery = `select * from GeoJSONs where state = "${fips}";`;
 
         db.query_first(sqlQuery, function(row) {
-            os_execute(`python3 ./modules/make-svg.py -g '${row.geojson}'`, stdout => {
+            os_execute(`python3 ./modules/make-svg.py -g '${row.geojson}' 2> debug.log`, stdout => {
                     res.status(200).send(stdout)
                 }, 
                 res

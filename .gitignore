@@ -9,3 +9,4 @@ counties-geo.ndjson
 output.sql
 koko.db
 koko-bk.db
+debug.log
