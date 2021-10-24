@@ -16,21 +16,19 @@ def convert_percent_to_hsl(percent, max_val):
     return (h, s, l)
 
 
-def color_ndjson(metadata):
-    # get data from database
-    con = sqlite3.connect('koko.db')
-    cur = con.cursor()
-    fips = metadata['fips']
-    rows = cur.execute(f'select * from Group5 where state = "{fips}"')
+def color_ndjson():
+    os.system('python3 ./features/population/state/20-to-24.py > data.txt')
+    data = open('data.txt', 'r')
 
     # get max value
     max_val = 0
     saved_rows = []
-    for row in rows:
-        value = float(row[1])
+    for row in data.readlines():
+        tokens = row.replace(' ', '').replace(')','').replace('(','').replace("'",'').split(',')
+        value = float(tokens[1])
         if value > max_val:
             max_val = value
-        saved_rows.append(row)
+        saved_rows.append(tokens)
 
     # color each path
     color_map = {}
@@ -52,7 +50,6 @@ def color_ndjson(metadata):
     # make sure to close the files and the database
     ndjson.close()
     ndjson_bk.close()
-    con.close()
 
     # clean up
     os.system('rm geojson.ndjson')
