@@ -31,5 +31,6 @@ create table GeoJSONs(
 create table SessionTokens(
     token text unique,
     data text,
-    dt datetime default current_timestamp
+    created datetime default current_timestamp,
+	last_activity datetime default current_timestamp
 );

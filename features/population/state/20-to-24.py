@@ -6,3 +6,5 @@ if __name__ == '__main__':
     rows = cur.execute(f'select * from Group5 where state = "12"')
     for row in rows:
         print(row)
+
+    con.close()

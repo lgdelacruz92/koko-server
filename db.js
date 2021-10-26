@@ -20,6 +20,7 @@ const sql_execute = query => {
         db.serialize(function () {
             db.all(query, function (err, row) {
                 if (err) {
+                    console.log(err);
                     reject(err);
                     return
                 }

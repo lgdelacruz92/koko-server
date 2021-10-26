@@ -2,9 +2,11 @@ import os
 import argparse
 import sqlite3
 import json
+import db
 
 parser = argparse.ArgumentParser()
-parser.add_argument("-g", "--geojson", help="GeoJSON string.", required=True)
+parser.add_argument("-g", "--geojson", help="GeoJSON string.", default=None)
+parser.add_argument('-s', '--session', help="Session token for user.", default=None)
 args = parser.parse_args()
 
 LIMIT = 120 # limit 120 means hsl hue is 0 to 120 (i.e red to green)
@@ -15,6 +17,12 @@ def convert_percent_to_hsl(percent, max_val):
     l = 61
     return (h, s, l)
 
+def color_json_from_session(token):
+    # read data
+    data = db.execute(f'select * from SessionTokens where token = "{token}"')
+    print(data.first())
+    # data_json = json.loads(data.first())
+    # print(data_json)
 
 def color_ndjson():
     os.system('python3 ./features/population/state/20-to-24.py > data.txt')
@@ -57,30 +65,33 @@ def color_ndjson():
 
 
 if __name__ == '__main__':
-    geojson = open('geojson.json', 'w')
+    if args.geojson:
+        geojson = open('geojson.json', 'w')
 
-    geojson.write(args.geojson)
-    geojson.close()
+        geojson.write(args.geojson)
+        geojson.close()
 
-    geojson = open('geojson.json', 'r')
-    geojson_json = json.load(geojson)
+        geojson = open('geojson.json', 'r')
+        geojson_json = json.load(geojson)
 
-    os.system('''
-        ndjson-split 'd.features' \
-            < geojson.json \
-            > geojson.ndjson
+        os.system('''
+            ndjson-split 'd.features' \
+                < geojson.json \
+                > geojson.ndjson
+            ''')
+
+        # colors the svg
+        color_ndjson(geojson_json['metadata'])
+
+        os.system('''
+            geo2svg -n --stroke none -p 1 -w 960 -h 960 \
+                < geojson.ndjson \
+                > geojson.svg
         ''')
 
-    # colors the svg
-    color_ndjson(geojson_json['metadata'])
+        os.system('cat geojson.svg')
 
-    os.system('''
-        geo2svg -n --stroke none -p 1 -w 960 -h 960 \
-            < geojson.ndjson \
-            > geojson.svg
-    ''')
-
-    os.system('cat geojson.svg')
-
-    # cleanup
-    os.system('rm geojson.svg geojson.json geojson.ndjson')
+        # cleanup
+        os.system('rm geojson.svg geojson.json geojson.ndjson')
+    elif args.session:
+        color_json_from_session(args.session)
