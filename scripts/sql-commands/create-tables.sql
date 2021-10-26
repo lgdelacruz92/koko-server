@@ -27,3 +27,9 @@ create table GeoJSONs(
     geojson text,
     foreign key(state) references state(fips)
 );
+
+create table SessionTokens(
+    token text unique,
+    data text,
+    dt datetime default current_timestamp
+);
