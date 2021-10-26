@@ -1,6 +1,4 @@
-const { removeStopWords } = require('./modules/utils');
-const { exec } = require("child_process");
-const fs = require('fs')
+const { removeStopWords, os_execute } = require('../modules/utils');
 
 exports.search = {
     route: '/search',
@@ -20,20 +18,6 @@ exports.search = {
             res.status(404).json(err);
         });
     }
-}
-
-const os_execute = (command, stdoutCallback, res) => {
-    exec(command, (error, stdout, stderr) => {
-        if (error) {
-            res.status(500).send(`error: ${error.message}`);
-            return;
-        }
-        if (stderr) {
-            res.status(500).send(`stderr: ${stderr}`);
-            return;
-        }
-        stdoutCallback(stdout);
-    });
 }
 
 exports.makeSvg = {

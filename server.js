@@ -3,7 +3,8 @@ const cors = require('cors')
 const app = express()
 const port = 5000
 const db = require('./db');
-const stateRoutes = require('./state-routes');
+const stateEndpoints = require('./endpoints/state-endpoints');
+const dataEndpoints = require('./endpoints/data-endpoints');
 
 python = '/usr/local/bin/python3'
 cwd = process.cwd()
@@ -11,6 +12,11 @@ cwd = process.cwd()
 var corsOptions = {
     origin: 'http://localhost:3000',
 }
+
+app.use(express.json());
+app.use(express.urlencoded({
+  extended: true
+}));
 
 app.get('/svgs', cors(corsOptions), (req, res) => {
     const query1 = 'select * from Group5';
@@ -115,8 +121,14 @@ app.get('/state/:state_fips/county/:county_fips', cors(corsOptions), (req, res) 
 /*
     State routes
 */
-app.get(stateRoutes.search.route, cors(corsOptions), (req, res, next) => stateRoutes.search.handler(req, res, next, db));
-app.get(stateRoutes.makeSvg.route, cors(corsOptions), (req, res, next) => stateRoutes.makeSvg.handler(req, res, next, db));
+app.get(stateEndpoints.search.route, cors(corsOptions), (req, res, next) => stateEndpoints.search.handler(req, res, next, db));
+app.get(stateEndpoints.makeSvg.route, cors(corsOptions), (req, res, next) => stateEndpoints.makeSvg.handler(req, res, next, db));
+
+
+/*
+    Data routes
+*/
+app.post(dataEndpoints.use.route, (req, res, next) => dataEndpoints.use.handler(req, res, next, db));
 
 app.listen(port, () => {
     console.log(`Example app listening at http://localhost:${port}`)
