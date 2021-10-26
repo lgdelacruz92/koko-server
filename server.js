@@ -18,6 +18,12 @@ app.use(express.urlencoded({
   extended: true
 }));
 
+app.use(function(req, res, next) {
+    res.header("Access-Control-Allow-Origin", "*");
+    res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+    next();
+});
+
 app.get('/svgs', cors(corsOptions), (req, res) => {
     const query1 = 'select * from Group5';
     const query2 = 'select * from svgs where state = "*"';
