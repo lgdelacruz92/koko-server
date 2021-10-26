@@ -134,7 +134,7 @@ app.get(stateEndpoints.makeSvg.route, cors(corsOptions), (req, res, next) => sta
 /*
     Data routes
 */
-app.post(dataEndpoints.use.route, (req, res, next) => dataEndpoints.use.handler(req, res, next, db));
+app.post(dataEndpoints.use.route, cors(corsOptions), (req, res, next) => dataEndpoints.use.handler(req, res, next, db));
 
 app.listen(port, () => {
     console.log(`Example app listening at http://localhost:${port}`)
