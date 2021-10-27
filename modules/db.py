@@ -6,7 +6,7 @@ class Rows:
         self.rows = rows
     
     def first(self):
-        if (self.rows) == 0:
+        if len(self.rows) == 0:
             raise ValueError('Rows are empty.')
         return self.rows[0]
     
