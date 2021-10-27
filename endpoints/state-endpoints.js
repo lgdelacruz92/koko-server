@@ -24,16 +24,13 @@ exports.makeSvg = {
     route: '/make/:fips',
     handler: function(req, res, nex, db) {
         const fips = req.params.fips;
-        const sqlQuery = `select * from GeoJSONs where state = "${fips}";`;
-
-        db.query_first(sqlQuery, function(row) {
-            os_execute(`python3 ./modules/make-svg.py -g '${row.geojson}' 2> debug.log`, stdout => {
-                    res.status(200).send(stdout)
-                }, 
-                res
-            );
-        }, function(err) {
-            res.status(404).json(err);
-        });
+        const session = req.body.session;
+        console.log(fips, session);
+        os_execute(`source env.sh && python3 ./modules/make-svg.py -s ${session} -f ${fips} 2> debug.log`, stdout => {
+                console.log(stdout);
+                res.status(200).send(stdout)
+            }, 
+            res
+        );
     }
 }

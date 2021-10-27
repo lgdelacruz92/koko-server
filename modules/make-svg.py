@@ -26,14 +26,16 @@ def color_json_from_session(token, state_fips):
 
     # data json
     data_json = json.loads(data)
-    max_percent = max([float(county['percent']) for county in data_json['data']])
+    percents = [float(county['percent']) for county in data_json['data'] if county['state_fips'] == state_fips]
+    max_percent = max(percents)
 
     # assign a color for each county
     colors = {}
     for county in data_json['data']:
         # state + county = fips
-        h, s, l = convert_percent_to_hsl(float(county['percent']), max_percent)
-        colors[county['state_fips'] + county['county_fips']] = f'hsl({h}, {s}%, {l}%)'
+        if county['state_fips'] == state_fips:
+            h, s, l = convert_percent_to_hsl(float(county['percent']), max_percent)
+            colors[county['state_fips'] + county['county_fips']] = { 'color': f'hsl({h}, {s}%, {l}%)' , 'percent': float(county['percent'])}
 
     # get geojson
     geojson_rows = db.execute(f'select * from GeoJSONs where state = "{state_fips}"')
@@ -46,43 +48,20 @@ def color_json_from_session(token, state_fips):
     for feature in geojson_json['features']:
         fips = feature['id'] # represents state + county
         if fips in colors:
-            feature['properties'] = { 'fill' : colors[fips] }
+            feature['properties'] = { 'fill' : colors[fips]['color'] }
         else:
-            feature['properties'] = { 'fill' : 'hsl(120, {s}%, {l}%)'} # if not defined color green
+            feature['properties'] = { 'fill' : 'hsl(120, {s}%, {l}%)' } # if not defined color green
 
     # convert to geojson
     geojson_str = json.dumps(geojson_json)
     geo2svg(geojson_str)
 
 def geo2svg(geojson_str):
-    # First write geojson to a file
-    geojson = open('geojson.json', 'w')
-    geojson.write(geojson_str)
-    geojson.close()
-
-    # Read the file
-    geojson = open('geojson.json', 'r')
-    geojson_json = json.load(geojson)
-
     # convert to ndjson
-    os.system('''
-        ndjson-split 'd.features' \
-            < geojson.json \
-            > geojson.ndjson
-        ''')
-
-    # convert to svg
-    os.system('''
-        geo2svg -n --stroke none -p 1 -w 960 -h 960 \
-            < geojson.ndjson \
-            > geojson.svg
-    ''')
-
-    # output to stdout
-    os.system('cat geojson.svg')
-
-    # cleanup
-    os.system('rm geojson.svg geojson.json geojson.ndjson')
+    os.system('''echo '%s'\
+        | ndjson-split 'd.features' \
+        | geo2svg -n --stroke none -p 1 -w 960 -h 960
+        ''' % (geojson_str))
 
 if __name__ == '__main__':
     color_json_from_session(args.session, args.fips)
