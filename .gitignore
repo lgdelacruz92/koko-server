@@ -11,3 +11,8 @@ koko.db
 koko-bk.db
 debug.log
 env.sh
+*.pyc
+output
+*.html
+*.txt
+*/__pycache__/

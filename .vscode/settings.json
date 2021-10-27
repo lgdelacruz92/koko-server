@@ -8,5 +8,6 @@
         "topo",
         "topojson"
     ],
-    "workbench.colorTheme": "Winter is Coming (Dark Black - No Italics)"
+    "workbench.colorTheme": "Winter is Coming (Dark Black - No Italics)",
+    "python.autoComplete.extraPaths": ["./modules"],
 }

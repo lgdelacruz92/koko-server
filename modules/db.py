@@ -1,7 +1,6 @@
 import sqlite3
 import os
         
-
 class Rows:
     def __init__(self, rows=[]):
         self.rows = rows
