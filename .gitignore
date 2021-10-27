@@ -10,3 +10,4 @@ output.sql
 koko.db
 koko-bk.db
 debug.log
+env.sh
