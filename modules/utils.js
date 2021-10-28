@@ -9,7 +9,6 @@ exports.removeStopWords = searchQuery => {
 }
 
 exports.os_execute = (command, stdoutCallback, res) => {
-    console.log(command);
     exec(command, (error, stdout, stderr) => {
         if (error) {
             res.status(500).send(`error: ${error.message}`);

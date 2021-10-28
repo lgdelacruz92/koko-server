@@ -25,8 +25,7 @@ exports.makeSvg = {
     handler: function(req, res, nex, db) {
         const fips = req.params.fips;
         const session = req.body.session;
-        console.log(fips, session);
-        os_execute(`source env.sh && python3 ./modules/make-svg.py -s ${session} -f ${fips} 2> debug.log`, stdout => {
+        os_execute(`python3 ./modules/make-svg.py -s ${session} -f ${fips} 2> debug.log 1>/dev/null`, stdout => {
                 console.log(stdout);
                 res.status(200).send(stdout)
             }, 
