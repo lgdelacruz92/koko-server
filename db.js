@@ -1,4 +1,5 @@
 var sqlite3 = require('sqlite3').verbose()
+const { resourceNotFound } = require('./modules/utils');
 
 const sql_query = (query, callback, errCallback) => {
     var db = new sqlite3.Database('koko.db');
@@ -35,7 +36,13 @@ exports.sql_execute = sql_execute;
 exports.sql_execute_first = query => {
     return new Promise((resolve, reject) => {
         sql_execute(query)
-            .then(row => resolve(row))
+            .then(row => {
+                if (row.length === 0) {
+                    reject(resourceNotFound());
+                } else {
+                    resolve(row[0])
+                }
+            })
             .catch(err => reject(err));
     });
 }

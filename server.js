@@ -132,11 +132,11 @@ app.get(stateEndpoints.search.route, cors(corsOptions), (req, res, next) => stat
 app.post(stateEndpoints.makeSvg.route, cors(corsOptions), (req, res, next) => stateEndpoints.makeSvg.handler(req, res, next, db));
 app.get(stateEndpoints.getStates.route, cors(corsOptions), (req, res, next) => stateEndpoints.getStates.handler(res, db));
 
-
 /*
     Data routes
 */
 app.post(dataEndpoints.use.route, cors(corsOptions), (req, res, next) => dataEndpoints.use.handler(req, res, next, db));
+app.post(dataEndpoints.getData.route, cors(corsOptions), (req, res) => dataEndpoints.getData.handler(req, res, db));
 
 app.listen(port, () => {
     console.log(`Example app listening at http://localhost:${port}`)

@@ -35,7 +35,7 @@ exports.makeSvg = {
 
 exports.getStates = {
     route: '/states',
-    handler: async function(res, db) {
+    handler: function(res, db) {
         db.sql_execute('select state_name as name, fips from state')
             .then(state_rows => {
                 res.status(200).json({ states: state_rows }) 
