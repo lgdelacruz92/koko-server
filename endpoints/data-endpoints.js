@@ -20,8 +20,20 @@ exports.getData = {
             .then(row => {
                 const dataJson = JSON.parse(row.data);
                 const stateData = dataJson.data.filter(d => d.state_fips === stateFips);
-                const stateDataWithName = stateData.map(s => ({ ...s, county_name: 'Some name', state_name: 'Alabama'}));
-                res.status(200).json({ data: stateDataWithName });
+
+                const query = `select fips, state_name, county_name from County where state = '${stateFips}'`
+                console.log(query);
+                db.sql_execute(query)
+                    .then(countyRows => {
+                        const reducer = (prev, cur) => {
+                            prev[cur.fips] = {...cur};
+                            return prev;
+                        }
+                        const map = countyRows.reduce(reducer, {});
+
+                        const stateDataWithName = stateData.map(s => ({ ...s, county_name: map[s.state_fips + s.county_fips].county_name, state_name: map[s.state_fips + s.county_fips].state_name}));
+                        res.status(200).json({ data: stateDataWithName });
+                    })
             })
             .catch(err => {
                 res.status(404).send(err);
