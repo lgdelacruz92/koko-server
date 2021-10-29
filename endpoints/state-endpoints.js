@@ -1,4 +1,4 @@
-const { removeStopWords, os_execute } = require('../modules/utils');
+const { removeStopWords, os_execute, resourceNotFound } = require('../modules/utils');
 
 exports.search = {
     route: '/search',
@@ -22,7 +22,7 @@ exports.search = {
 
 exports.makeSvg = {
     route: '/make/:fips',
-    handler: function(req, res, nex, db) {
+    handler: function(req, res) {
         const fips = req.params.fips;
         const session = req.body.session;
         os_execute(`python3 ./modules/make-svg.py -s ${session} -f ${fips} 2> debug.log`, stdout => {
@@ -30,5 +30,19 @@ exports.makeSvg = {
             },
             res
         );
+    }
+}
+
+exports.getStates = {
+    route: '/states',
+    handler: async function(res, db) {
+        db.sql_execute('select state_name as name, fips from state')
+            .then(state_rows => {
+                res.status(200).json({ states: state_rows }) 
+            })
+            .catch(err => {
+                res.status(404).send(resourceNotFound('States'));
+            })
+        
     }
 }

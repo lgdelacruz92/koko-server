@@ -21,3 +21,7 @@ exports.os_execute = (command, stdoutCallback, res) => {
         stdoutCallback(stdout);
     });
 }
+
+exports.resourceNotFound = value => {
+    return (value !== undefined ? `${value} not found` : 'Resource not found');
+}

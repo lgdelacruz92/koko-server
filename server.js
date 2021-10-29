@@ -130,6 +130,7 @@ app.get('/state/:state_fips/county/:county_fips', cors(corsOptions), (req, res) 
 */
 app.get(stateEndpoints.search.route, cors(corsOptions), (req, res, next) => stateEndpoints.search.handler(req, res, next, db));
 app.post(stateEndpoints.makeSvg.route, cors(corsOptions), (req, res, next) => stateEndpoints.makeSvg.handler(req, res, next, db));
+app.get(stateEndpoints.getStates.route, cors(corsOptions), (req, res, next) => stateEndpoints.getStates.handler(res, db));
 
 
 /*
