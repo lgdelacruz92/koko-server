@@ -22,7 +22,7 @@ create table TopoJSONs(
     foreign key(state) references state(fips)
 );
 
-create table GeoJSONs(
+create table StateCountyGeoJSONs(
     state text,
     geojson text,
     foreign key(state) references state(fips)
@@ -34,3 +34,8 @@ create table SessionTokens(
     created datetime default current_timestamp,
 	last_activity datetime default current_timestamp
 );
+
+create table CountryCountyGeoJSONs(
+    name text unique,
+    geojson text
+)

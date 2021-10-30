@@ -18,3 +18,10 @@ output
 */__pycache__/
 */.DS_Store
 */*/.DS_Store
+geojson.svg
+country.ndjson
+country.json
+scripts/python/us-counties-geojson/counties-albers-10m.json
+scripts/python/us-counties-geojson/counties-albers.json
+stdout.log
+geojson.json

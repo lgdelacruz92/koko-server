@@ -1,0 +1,28 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Make-SVG: Country",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/modules/make-svg.py",
+            "args" : ["-s", "cc68e83c-0aea-40a3-9a18-9f1d43dec3c1", "-c","United States"],
+            "env": {
+                "KOKO_SERVER_HOST": "${workspaceFolder}/koko.db"
+            },
+        },
+        {
+            "name": "Make-SVG: State",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/modules/make-svg.py",
+            "args" : ["-s", "cc68e83c-0aea-40a3-9a18-9f1d43dec3c1", "-f","12"],
+            "env": {
+                "KOKO_SERVER_HOST": "${workspaceFolder}/koko.db"
+            },
+        }
+    ]
+}

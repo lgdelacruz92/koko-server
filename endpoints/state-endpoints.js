@@ -1,4 +1,4 @@
-const { removeStopWords, os_execute, resourceNotFound } = require('../modules/utils');
+const { removeStopWords, resourceNotFound } = require('../modules/utils');
 
 exports.search = {
     route: '/search',
@@ -20,16 +20,49 @@ exports.search = {
     }
 }
 
+const getSessionData = (db, token) => {
+    return new Promise((resolve, reject) => {
+        const query = `select * from SessionTokens where token = '${token}'`;
+        console.log(query);
+        db.sql_execute_first(query)
+            .then(row => resolve(row))
+            .catch(err => reject(err));
+    })
+}
+
+const getStateGeoJSON = (db, fips) => {
+    return new Promise((resolve, reject) => {
+        const query = `select * from StateCountyGeoJsons where state = '${fips}'`;
+        console.log(query);
+        db.sql_execute_first(query)
+            .then(row => resolve(row))
+            .catch(err => reject(err));
+    })
+}
+
 exports.makeSvg = {
     route: '/make/:fips',
-    handler: function(req, res) {
+    handler: function(req, res, next, db) {
         const fips = req.params.fips;
-        const session = req.body.session;
-        os_execute(`python3 ./modules/make-svg.py -s ${session} -f ${fips} 2> debug.log`, stdout => {
-                res.status(200).send(stdout)
-            },
-            res
-        );
+        const sessionToken = req.body.session;
+        getSessionData(db, sessionToken)
+            .then(dataRow => {
+                dataJson = JSON.parse(dataRow.data);
+                dataRow.data = dataJson;
+                getStateGeoJSON(db, fips)
+                    .then(geojsonRow => {
+                        geojson = JSON.parse(geojsonRow.geojson);
+                        geojsonRow.geojson = geojson;
+                        res.status(200).json({
+                            data: dataRow,
+                            geojson: geojson
+                        });
+                    })
+            })
+            .catch(err => {
+                console.log(err);
+                res.status(404).send(resourceNotFound())
+            })
     }
 }
 
