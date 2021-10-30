@@ -34,9 +34,9 @@ const getSessionData = (db, token) => {
     })
 }
 
-const getStateGeoJSON = (db, fips) => {
+const getStateGeoJSON = (db, stateFips) => {
     return new Promise((resolve, reject) => {
-        const query = `select * from StateCountyGeoJsons where state = '${fips}'`
+        const query = `select * from StateCountyGeoJsons where state = '${stateFips}'`
         console.log(query)
         db.sql_execute_first(query)
             .then((row) => resolve(row))
@@ -44,9 +44,9 @@ const getStateGeoJSON = (db, fips) => {
     })
 }
 
-const getCounties = db => {
+const getCounties = (db, stateFips) => {
     return new Promise((resolve, reject) => {
-        const query = `select * from County`
+        const query = `select * from County where state = '${stateFips}'`
         console.log(query)
         db.sql_execute(query)
             .then(rows => resolve(rows))
@@ -57,7 +57,7 @@ const getCounties = db => {
 exports.makeSvg = {
     route: '/make/:fips',
     handler: function (req, res, next, db) {
-        const fips = req.params.fips
+        const stateFips = req.params.fips
         const sessionToken = req.body.session
 
         // get the session data
@@ -67,11 +67,11 @@ exports.makeSvg = {
                 dataRow.data = dataJson
 
                 // get the geojson
-                getStateGeoJSON(db, fips).then((geojsonRow) => {
+                getStateGeoJSON(db, stateFips).then((geojsonRow) => {
                     geojson = JSON.parse(geojsonRow.geojson)
                     geojsonRow.geojson = geojson
 
-                    getCounties(db).then((counties) => {
+                    getCounties(db, stateFips).then((counties) => {
                         // transform counties for faster lookup
                         const countyLookup = counties.reduce(
                             (prev, cur) => {
@@ -80,11 +80,15 @@ exports.makeSvg = {
                             }, {}
                         )
 
+                        let max_val = 0;
                         // transform data to lookup by fips
                         const countyDataReducer = (prev, cur) => {
                             const countyFips = cur.state_fips + cur.county_fips;
                             if (countyFips in countyLookup) {
                                 prev[countyFips] = { ...cur, county_name: countyLookup[countyFips].county_name, state_name: countyLookup[countyFips].state_name }
+                                if (parseFloat(cur.percent) > max_val) {
+                                    max_val = parseFloat(cur.percent);
+                                }
                             }
                             return prev
                         }
@@ -92,6 +96,7 @@ exports.makeSvg = {
                         res.status(200).json({
                             countyData: dataRow.data.data.reduce(countyDataReducer, {}),
                             geojson: geojson,
+                            max_val: max_val
                         })
                     })
                     .catch(err => {
