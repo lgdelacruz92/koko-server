@@ -93,10 +93,19 @@ exports.makeSvg = {
                             return prev
                         }
 
+                        const countyData = dataRow.data.data.reduce(countyDataReducer, {});
+
+                        const newFeatures = geojson.features.map(feature => {
+                            return {
+                                ...feature,
+                                properties: { ...feature.properties, ...countyData[feature.id] }
+                            }
+                        });
+                        geojson.max_val = max_val;
+                        geojson.features = newFeatures;
+
                         res.status(200).json({
-                            countyData: dataRow.data.data.reduce(countyDataReducer, {}),
-                            geojson: geojson,
-                            max_val: max_val
+                            geojson
                         })
                     })
                     .catch(err => {
