@@ -53,8 +53,14 @@ exports.makeSvg = {
                     .then(geojsonRow => {
                         geojson = JSON.parse(geojsonRow.geojson);
                         geojsonRow.geojson = geojson;
+
+                        const reducer = (prev, cur) => {
+                            prev[cur.state_fips + cur.county_fips] = { ...cur };
+                            return prev;
+                        }
+
                         res.status(200).json({
-                            data: dataRow,
+                            data: dataRow.data.data.reduce(reducer, {}),
                             geojson: geojson
                         });
                     })
