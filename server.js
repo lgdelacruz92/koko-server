@@ -5,6 +5,7 @@ const port = 5000
 const db = require('./db');
 const stateEndpoints = require('./endpoints/state-endpoints');
 const dataEndpoints = require('./endpoints/data-endpoints');
+const geojsonEndpoints = require('./endpoints/geojson-endpoint');
 
 python = '/usr/local/bin/python3'
 cwd = process.cwd()
@@ -136,6 +137,11 @@ app.get(stateEndpoints.getStates.route, cors(corsOptions), (req, res, next) => s
     Data routes
 */
 app.post(dataEndpoints.use.route, cors(corsOptions), (req, res, next) => dataEndpoints.use.handler(req, res, next, db));
+
+/*
+    GeoJSON endpoints
+*/
+app.get(geojsonEndpoints.geojson.route, cors(corsOptions), (req, res, next) => geojsonEndpoints.geojson.handler(req, res, next, db));
 
 app.listen(port, () => {
     console.log(`Example app listening at http://localhost:${port}`)
