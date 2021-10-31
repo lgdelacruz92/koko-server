@@ -56,9 +56,9 @@ create table GeoJSONs(
 )
 
 create table Params(
-    id integer,
-    params text,
-    foreign key(id) references GeoJSONs(id)
+    id integer primary key autoincrement,
+    command text,
+    name text
 )
 
 create table State(
@@ -73,3 +73,13 @@ create table State(
     region_name text,
     division_name text
 );
+
+create table GeoSelections(
+    id integer primary key autoincrement,
+    command text,
+    title text,
+    type integer,
+    scale integer,
+    foreign key(type) references FeatureTypes(id)
+    foreign key(scale) references Scale(id)
+)
