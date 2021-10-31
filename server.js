@@ -10,8 +10,16 @@ const geojsonEndpoints = require('./endpoints/geojson-endpoint');
 python = '/usr/local/bin/python3'
 cwd = process.cwd()
 
-var corsOptions = {
-    origin: 'http://localhost:3000',
+
+const whitelist = ['http://localhost:3000', 'http://localhost:6006']
+const corsOptions = {
+  origin: function (origin, callback) {
+    if (whitelist.indexOf(origin) !== -1) {
+      callback(null, true)
+    } else {
+      callback(new Error('Not allowed by CORS'))
+    }
+  }
 }
 
 app.use(express.json({ limit: '50mb' }));
