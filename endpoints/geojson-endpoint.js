@@ -6,7 +6,12 @@ const {
     makeCountyDataMap,
     formatGeoJson
  } = require('../modules/utils');
-const { getSessionData, getUSGeoJSON, getGeoSelections } = require('../modules/common-sql');
+const {
+    getSessionData,
+    getStateFipsFromGeoSelectionId,
+    getGeoSelections,
+    getBestGeoJson 
+} = require('../modules/common-sql');
 
 const processGeoSelection = (db, geoSelection) => {
     return new Promise((resolve, reject) => {
@@ -31,13 +36,14 @@ exports.geojson = {
             const geoid = req.params.geoid;
             try {
                 const sessionRow = await getSessionData(db, token);
-                const usGeoJson = await getUSGeoJSON(db, feature);
+                const state_fips = await getStateFipsFromGeoSelectionId(db, geoid);
+                const geoJsonRow = await getBestGeoJson(db, feature, state_fips);
                 const geoSelection = await getGeoSelections(db, geoid);
                 const geoSelectionResults = await processGeoSelection(db, geoSelection);
                 const data = getSessionDataJson(sessionRow);
                 const countyLookup = makeCountyLookup(geoSelectionResults);
                 const dataMap = makeCountyDataMap(data.data, countyLookup);
-                const geoJson = getGeoJson(usGeoJson);
+                const geoJson = getGeoJson(geoJsonRow);
                 const formattedGeoJson = formatGeoJson(geoJson, dataMap.countyDataMap, dataMap.max_val);
                 res.status(200).json({ formattedGeoJson });
             }
@@ -52,10 +58,15 @@ exports.geojson = {
 
 const listGeoSelections = async (db, res) => {
     try {
-        const query = 'select * from GeoSelections';
+        const query = 'select GeoSelections.id as id, title, FeatureTypes.name as type from GeoSelections join FeatureTypes on GeoSelections.type = FeatureTypes.id';
         console.log(query);
-        const geoSelections = await db.sql_execute(query);
-        res.status(200).json(geoSelections.map(g => ({ id: g.id, title: g.title })));
+        let geoSelections = await db.sql_execute(query);
+        if (geoSelections.length > 2) {
+            const lastGeo = geoSelections[geoSelections.length - 1];
+            geoSelections.splice(geoSelections.length - 1, 1);
+            geoSelections = [lastGeo].concat(geoSelections);    
+        }
+        res.status(200).json(geoSelections);
     }
     catch (err) {
         res.status(404).send(resourceNotFound('(GeoSelections)'));

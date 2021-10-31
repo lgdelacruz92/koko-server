@@ -83,3 +83,29 @@ create table GeoSelections(
     foreign key(type) references FeatureTypes(id)
     foreign key(scale) references Scale(id)
 )
+
+create table State_GeoJson(
+    id integer primary key autoincrement,
+    state_fips text,
+    geojson_id integer,
+    foreign key(geojson_id) references GeoJSONs(id)
+)
+
+create table State_GeoSelection(
+    id integer primary key autoincrement,
+    geoselection_id integer,
+    state_fips text,
+    foreign key(geoselection_id) references GeoSelections(id)
+)
+
+/* /geo/County/geoid/12/session/073f937d-793e-4848-bb47-12e507d33195 */
+select FeatureTypes.name as type, 
+    GeoJson.geojson as geojson,
+    State_GeoSelection.state_fips as state_fips
+from
+    GeoSelections join FeatureTypes on FeatureTypes.id = GeoSelections.type
+    join State_GeoSelection
+    join State_GeoJson
+    join GeoJSONs
+    where type = 'County' and state_fips = '12';
+        

@@ -39,14 +39,41 @@ exports.getGeoSelections = (db, id) => {
     })
 }
 
+exports.getStateFipsFromGeoSelectionId = (db, geoid) => {
+    console.log('here 1')
+    return new Promise((resolve, reject) => {
+        console.log('here 2')
+        const queryArray = [
+            'select * from GeoSelections',
+            '	join State_GeoSelection on State_GeoSelection.geoselection_id = GeoSelections.id',
+            `	where GeoSelections.id = ${geoid};`,
+            ];
+        console.log('here 3', queryArray)
+        const query = queryArray.join('\n');
+        console.log(query);
+        db.sql_execute_first(query)
+            .then(row => resolve(row.state_fips))
+            .catch(err => reject(err))
+    })
+}
 
-exports.getUSGeoJSON = (db, feature) => {
+
+exports.getBestGeoJson = (db, feature, state_fips) => {
+    console.log('here 5')
     return new Promise((resolve, reject) => {
         const queryArray = [
-            'select GeoJSONs.id as geojson_id, FeatureTypes.id as feature_types_id, geojson from GeoJSONs\n\t',
-            'join FeatureTypes on FeatureTypes.id = GeoJSONs.type\n\t',
-            `where GeoJSONs.id = 123 and FeatureTypes.name = "${feature}"`];
-        const query = queryArray.join('');
+            'select geojson,',
+            '	GeoJSONs.id as geojson_id,',
+            '	GeoSelections.id as geoselection_id,',
+            '	State_GeoSelection.state_fips as state_fips',
+            'from',
+            '    GeoSelections join FeatureTypes on FeatureTypes.id = GeoSelections.type',
+            '    join State_GeoSelection on GeoSelections.id = State_GeoSelection.geoselection_id',
+            '	join State_GeoJson on State_GeoJson.state_fips = State_GeoSelection.state_fips',
+            '	join GeoJSONs on GeoJSONs.id = State_GeoJson.geojson_id',
+            `	where FeatureTypes.name = '${feature}' and State_GeoSelection.state_fips = '${state_fips}';`,
+            ]
+        const query = queryArray.join('\n\t');
         console.log(query)
         db.sql_execute_first(query)
             .then(row => resolve(row))
