@@ -40,15 +40,12 @@ exports.getGeoSelections = (db, id) => {
 }
 
 exports.getStateFipsFromGeoSelectionId = (db, geoid) => {
-    console.log('here 1')
     return new Promise((resolve, reject) => {
-        console.log('here 2')
         const queryArray = [
             'select * from GeoSelections',
             '	join State_GeoSelection on State_GeoSelection.geoselection_id = GeoSelections.id',
             `	where GeoSelections.id = ${geoid};`,
             ];
-        console.log('here 3', queryArray)
         const query = queryArray.join('\n');
         console.log(query);
         db.sql_execute_first(query)
@@ -59,7 +56,6 @@ exports.getStateFipsFromGeoSelectionId = (db, geoid) => {
 
 
 exports.getBestGeoJson = (db, feature, state_fips) => {
-    console.log('here 5')
     return new Promise((resolve, reject) => {
         const queryArray = [
             'select geojson,',
