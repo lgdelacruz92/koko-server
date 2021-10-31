@@ -1,30 +1,24 @@
 const { resourceNotFound } = require('../modules/utils');
-const { getSessionData, getUSGeoJSON } = require('../modules/common-sql');
+const { getSessionData, getUSGeoJSON, getGeoSelections } = require('../modules/common-sql');
 
 exports.geojson = {
-    route: '/geo/:feature/param/:param/session/:token',
+    route: '/geo/:feature/scale/:scale/session/:token',
     handler: function(req, res, next, db) {
-        const token = req.params.token;
-        const feature = req.params.feature;
-        const param = req.params.param;
+        const getGeo = async (req, res, db) => {
+            const token = req.params.token;
+            const feature = req.params.feature;
+            const scale = req.params.scale;
+            try {
+                const sessionRow = await getSessionData(db, token);
+                const usGeoJson = await getUSGeoJSON(db, feature);
+                const geoSelections = await getGeoSelections(db, scale);
+                res.status(200).json({ sessionRow, usGeoJson, geoSelections });
+            }
+            catch (err) {
+                res.status(404).send(resourceNotFound());
+            }
+        }
 
-        // get session
-        getSessionData(db, token)
-            .then(sessionRow => {
-
-                // get US geojson
-                getUSGeoJSON(db)
-                    .then(usGeoJsonRow => {
-
-                        res.status(200).json({ sessionRow, usGeoJsonRow });
-                    })
-                    .catch(err => {
-                        console.log(err);
-                        res.status(404).send(resourceNotFound('(US GeoJSON)'));
-                    })
-            })
-            .catch(err => {
-                res.status(404).send(resourceNotFound('(Session)'));
-            })
+        getGeo(req, res, db);
     }
 }

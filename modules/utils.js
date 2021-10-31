@@ -27,3 +27,33 @@ exports.os_execute = (command, stdoutCallback, res) => {
 exports.resourceNotFound = value => {
     return (value !== undefined ? `${value} not found` : 'Resource not found');
 }
+
+exports.makeCountyLookup = counties => {
+    // transform counties for faster lookup
+    return counties.reduce(
+        (prev, cur) => {
+            prev[cur.fips] = { ...cur };
+            return prev;
+        }, {}
+    )
+}
+
+exports.makeCountyDataMap = (data, countyLookup) => {
+    // save max value
+    let max_val = 0;
+
+    // transform data to lookup by fips
+    const countyDataReducer = (prev, cur) => {
+        const countyFips = cur.state_fips + cur.county_fips;
+        if (countyFips in countyLookup) {
+            prev[countyFips] = { ...cur, county_name: countyLookup[countyFips].county_name, state_name: countyLookup[countyFips].state_name }
+            if (parseFloat(cur.percent) > max_val) {
+                max_val = parseFloat(cur.percent);
+            }
+        }
+        return prev
+    }
+
+    const countyDataMap = data.reduce(countyDataReducer, {});
+    return { countyDataMap, max_val };
+}

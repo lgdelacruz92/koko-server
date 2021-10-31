@@ -25,3 +25,4 @@ scripts/python/us-counties-geojson/counties-albers-10m.json
 scripts/python/us-counties-geojson/counties-albers.json
 stdout.log
 geojson.json
+koko.db-journal

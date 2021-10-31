@@ -43,33 +43,18 @@ exports.makeSvg = {
                     geojsonRow.geojson = geojson
 
                     getCounties(db, stateFips).then((counties) => {
-                        // transform counties for faster lookup
-                        const countyLookup = counties.reduce(
-                            (prev, cur) => {
-                                prev[cur.fips] = { ...cur };
-                                return prev;
-                            }, {}
-                        )
+                        // county lookup
+                        const countyLookup = makeCountyLookup(counties);
 
-                        let max_val = 0;
-                        // transform data to lookup by fips
-                        const countyDataReducer = (prev, cur) => {
-                            const countyFips = cur.state_fips + cur.county_fips;
-                            if (countyFips in countyLookup) {
-                                prev[countyFips] = { ...cur, county_name: countyLookup[countyFips].county_name, state_name: countyLookup[countyFips].state_name }
-                                if (parseFloat(cur.percent) > max_val) {
-                                    max_val = parseFloat(cur.percent);
-                                }
-                            }
-                            return prev
-                        }
-
-                        const countyData = dataRow.data.data.reduce(countyDataReducer, {});
+                        // county data map
+                        const result = makeCountyDataMap(data, countyLookup);
+                        const countyDataMap = result.countyDataMap;
+                        const max_val = result.max_val;
 
                         const newFeatures = geojson.features.map(feature => {
                             return {
                                 ...feature,
-                                properties: { ...feature.properties, ...countyData[feature.id] }
+                                properties: { ...feature.properties, ...countyDataMap[feature.id] }
                             }
                         });
                         geojson.max_val = max_val;
