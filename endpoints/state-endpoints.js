@@ -1,4 +1,4 @@
-const { removeStopWords, resourceNotFound } = require('../modules/utils');
+const { removeStopWords, resourceNotFound, formatGeoJson } = require('../modules/utils');
 const { getSessionData, getStateGeoJSON, getCounties } = require('../modules/common-sql');
 
 exports.search = {
@@ -50,18 +50,10 @@ exports.makeSvg = {
                         const result = makeCountyDataMap(data, countyLookup);
                         const countyDataMap = result.countyDataMap;
                         const max_val = result.max_val;
-
-                        const newFeatures = geojson.features.map(feature => {
-                            return {
-                                ...feature,
-                                properties: { ...feature.properties, ...countyDataMap[feature.id] }
-                            }
-                        });
-                        geojson.max_val = max_val;
-                        geojson.features = newFeatures;
+                        const formattedGeoJson = formatGeoJson(geojson, countyDataMap, max_val);
 
                         res.status(200).json({
-                            geojson
+                            formattedGeoJson
                         })
                     })
                     .catch(err => {

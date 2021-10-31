@@ -142,6 +142,7 @@ app.post(dataEndpoints.use.route, cors(corsOptions), (req, res, next) => dataEnd
     GeoJSON endpoints
 */
 app.get(geojsonEndpoints.geojson.route, cors(corsOptions), (req, res, next) => geojsonEndpoints.geojson.handler(req, res, next, db));
+app.get(geojsonEndpoints.geoSelections.route, cors(corsOptions), (req, res, next) => geojsonEndpoints.geoSelections.handler(res, db));
 
 app.listen(port, () => {
     console.log(`Example app listening at http://localhost:${port}`)

@@ -39,11 +39,13 @@ exports.makeCountyLookup = counties => {
 }
 
 exports.makeCountyDataMap = (data, countyLookup) => {
+
     // save max value
     let max_val = 0;
 
     // transform data to lookup by fips
     const countyDataReducer = (prev, cur) => {
+
         const countyFips = cur.state_fips + cur.county_fips;
         if (countyFips in countyLookup) {
             prev[countyFips] = { ...cur, county_name: countyLookup[countyFips].county_name, state_name: countyLookup[countyFips].state_name }
@@ -56,4 +58,25 @@ exports.makeCountyDataMap = (data, countyLookup) => {
 
     const countyDataMap = data.reduce(countyDataReducer, {});
     return { countyDataMap, max_val };
+}
+
+exports.getSessionDataJson = sessionRow => {
+    return JSON.parse(sessionRow.data);
+}
+
+exports.getGeoJson = geojsonRow => {
+    return JSON.parse(geojsonRow.geojson);
+}
+
+exports.formatGeoJson = (geojson, countyDataMap, max_val) => {
+    const features = geojson.features.filter(f => f.id in countyDataMap);
+    const newFeatures = features.map(feature => {
+        return {
+            ...feature,
+            properties: { ...feature.properties, ...countyDataMap[feature.id] }
+        }
+    });
+    geojson.max_val = max_val;
+    geojson.features = newFeatures;
+    return geojson;
 }
