@@ -42,15 +42,14 @@ exports.makeCountyDataMap = (data, countyLookup) => {
 
     // save max value
     let max_val = 0;
-
     // transform data to lookup by fips
     const countyDataReducer = (prev, cur) => {
 
-        const countyFips = cur.state_fips + cur.county_fips;
+        const countyFips = cur.fips;
         if (countyFips in countyLookup) {
             prev[countyFips] = { ...cur, county_name: countyLookup[countyFips].county_name, state_name: countyLookup[countyFips].state_name }
-            if (parseFloat(cur.percent) > max_val) {
-                max_val = parseFloat(cur.percent);
+            if (parseFloat(cur.value) > max_val) {
+                max_val = parseFloat(cur.value);
             }
         }
         return prev

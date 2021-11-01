@@ -45,7 +45,7 @@ exports.geojson = {
                 const dataMap = makeCountyDataMap(data.data, countyLookup);
                 const geoJson = getGeoJson(geoJsonRow);
                 const formattedGeoJson = formatGeoJson(geoJson, dataMap.countyDataMap, dataMap.max_val);
-                res.status(200).json({ formattedGeoJson });
+                res.status(200).json({ formattedGeoJson, dataMap });
             }
             catch (err) {
                 res.status(404).send(resourceNotFound());

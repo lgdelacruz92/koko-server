@@ -7,8 +7,8 @@ parser.add_argument('-g', '--get', action="store_true", help='get the data')
 parser.add_argument('-n', '--none', action="store_true", help='get none states')
 args = parser.parse_args()
 
-columns = ['DP02_0063PE', 'DP02_0063E']
-census_data_url = f'https://api.census.gov/data/2019/acs/acs5/profile?get={",".join(columns)}&for=county:*&in=state:*'
+columns = ['B01003_001E']
+census_data_url = f'https://api.census.gov/data/2019/acs/acs5?get={",".join(columns)}&for=county:*&in=state:*'
 
 def get_data():
     print(census_data_url)
@@ -16,7 +16,7 @@ def get_data():
     os.system('''
             ndjson-cat sample-csv.txt \
             | ndjson-split 'd.slice(1)' \
-            | ndjson-map '`${d[2]}${d[3]},${d[0]},${d[1]}`'
+            | ndjson-map '`${d[1] + d[2]},${d[0]}`'
     ''')
     # sample_csv_ndjson = open('sample-csv.ndjson', 'r')
     # sample_csv = open('sample.csv', 'w')
