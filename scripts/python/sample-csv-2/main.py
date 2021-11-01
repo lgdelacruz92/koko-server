@@ -16,7 +16,7 @@ def get_data():
     os.system('''
             ndjson-cat sample-csv.txt \
             | ndjson-split 'd.slice(1)' \
-            | ndjson-map '`${d[2]},${d[3]},${d[0]},${d[1]}`'
+            | ndjson-map '`${d[2]}${d[3]},${d[0]},${d[1]}`'
     ''')
     # sample_csv_ndjson = open('sample-csv.ndjson', 'r')
     # sample_csv = open('sample.csv', 'w')
