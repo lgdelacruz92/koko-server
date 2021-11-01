@@ -69,7 +69,7 @@ exports.getGeoJson = geojsonRow => {
 }
 
 exports.formatGeoJson = (geojson, countyDataMap, max_val) => {
-    const features = geojson.features.filter(f => f.id in countyDataMap);
+    const features = geojson.features;
     const newFeatures = features.map(feature => {
         return {
             ...feature,
