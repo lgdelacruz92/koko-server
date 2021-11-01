@@ -1,4 +1,6 @@
 const uuid4 = require('uuid4');
+const { getSessionData } = require('../modules/common-sql');
+const { resourceNotFound } = require('../modules/utils');
 
 exports.use = {
     route: '/use',
@@ -8,5 +10,32 @@ exports.use = {
         db.sql_execute(`insert into SessionTokens(token, data) values("${sessionToken}",'${JSON.stringify(req.body)}');`)
             .then(() => res.status(200).json({ session: sessionToken }))
             .catch(() => res.status(500).send('Something went wrong. Contact developers in the contact page.'))
+    }
+}
+
+exports.legend = {
+    route: '/legend/:token',
+
+    /**
+     * Gets the values for legend
+     * 
+     * Example: { min: 0, max: 100 }
+     * @param {request} req 
+     * @param {response} res 
+     * @param {db} db 
+     */
+    handler: function(req, res, db) {
+        const getLegend = async(req, res, db) => {
+            try {
+                const token = req.params.token;
+                const dataRow = await getSessionData(db, token);
+                const data = JSON.parse(dataRow.data);
+                res.status(200).json(data);
+            }
+            catch(err) {
+                res.status(404).send(resourceNotFound());
+            }
+        }
+        getLegend(req, res, db);
     }
 }
