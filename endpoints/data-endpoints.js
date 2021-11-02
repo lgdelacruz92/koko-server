@@ -13,6 +13,10 @@ exports.use = {
     }
 }
 
+const getMaxSessionData = data => {
+    return Math.max(...data.map(d => parseFloat(d.value)));
+}
+
 exports.legend = {
     route: '/legend/:token',
 
@@ -30,7 +34,8 @@ exports.legend = {
                 const token = req.params.token;
                 const dataRow = await getSessionData(db, token);
                 const data = JSON.parse(dataRow.data);
-                res.status(200).json(data);
+                const maxData = getMaxSessionData(data.data);
+                res.status(200).json({ min: 0, max: maxData });
             }
             catch(err) {
                 res.status(404).send(resourceNotFound());
