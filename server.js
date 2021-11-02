@@ -27,6 +27,8 @@ app.use(function(req, res, next) {
     next();
 });
 
+app.get('/ping', (req, res) => res.send('Success'));
+
 /*
     State routes
 */
