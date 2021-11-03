@@ -4,7 +4,7 @@
     "main": "index.js",
     "license": "MIT",
     "scripts": {
-        "debug": "nodemon serve.js",
+        "debug": "node scripts/js/db-migrations/sqlite.js",
         "start": "node server.js"
     },
     "dependencies": {
