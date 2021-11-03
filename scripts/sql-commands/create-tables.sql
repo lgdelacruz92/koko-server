@@ -35,7 +35,6 @@ create table SessionTokens(
     data text,
     created datetime default current_timestamp,
 	last_activity datetime default current_timestamp,
-
 );
 
 create table CountryCountyGeoJSONs(

@@ -6,6 +6,7 @@ const db = require('./db');
 const stateEndpoints = require('./endpoints/state-endpoints');
 const dataEndpoints = require('./endpoints/data-endpoints');
 const geojsonEndpoints = require('./endpoints/geojson-endpoint');
+require('dotenv').config()
 
 python = '/usr/local/bin/python3'
 cwd = process.cwd()
