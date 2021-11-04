@@ -289,3 +289,11 @@ else if (argv.state_geo_selection) {
     }
     main(params);
 }
+else if (argv.geo_selections) {
+    const params = {
+        tableName: { sqlite: 'GeoSelections', pg: 'geo_selections' },
+        tableDependency: { FeatureTypes: 'feature_types', Scale: 'scale' },
+        overrides: null
+    }
+    main(params);
+}

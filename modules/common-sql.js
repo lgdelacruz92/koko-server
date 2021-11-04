@@ -36,50 +36,43 @@ exports.getCounties = (db, stateFips) => {
     })
 }
 
-exports.getGeoSelections = (db, id) => {
-    return new Promise((resolve, reject) => {
-        const query = `select * from GeoSelections where id = ${id}`;
-        console.log(query)
-        db.sql_execute_first(query)
-            .then(row => resolve(row))
-            .catch(err => reject(err))
-    })
+exports.getGeoSelections = async id => {
+    const query = `select * from geo_selections where id = ${id}`;
+    const result = await pgDb.query_first(query);
+    return result;
 }
 
-exports.getStateFipsFromGeoSelectionId = (db, geoid) => {
-    return new Promise((resolve, reject) => {
-        const queryArray = [
-            'select * from GeoSelections',
-            '	join State_GeoSelection on State_GeoSelection.geoselection_id = GeoSelections.id',
-            `	where GeoSelections.id = ${geoid};`,
-            ];
-        const query = queryArray.join('\n');
-        console.log(query);
-        db.sql_execute_first(query)
-            .then(row => resolve(row.state_fips))
-            .catch(err => reject(err))
-    })
+exports.processGeoSelection = async geoSelection => {
+    const results = await pgDb.query(geoSelection.command);
+    return results.rows;
+}
+
+exports.getStateFipsFromGeoSelectionId = async geoid => {
+    const queryArray = [
+        'select * from geo_selections',
+        '	join state_geo_selection on geoselection_id = geo_selections.id',
+        `	where geo_selections.id = ${geoid};`,
+        ];
+    const query = queryArray.join('\n');
+    const result = await pgDb.query_first(query);
+    return result.state_fips;
 }
 
 
-exports.getBestGeoJson = (db, feature, state_fips) => {
-    return new Promise((resolve, reject) => {
-        const queryArray = [
-            'select geojson,',
-            '	GeoJSONs.id as geojson_id,',
-            '	GeoSelections.id as geoselection_id,',
-            '	State_GeoSelection.state_fips as state_fips',
-            'from',
-            '    GeoSelections join FeatureTypes on FeatureTypes.id = GeoSelections.type',
-            '    join State_GeoSelection on GeoSelections.id = State_GeoSelection.geoselection_id',
-            '	join State_GeoJson on State_GeoJson.state_fips = State_GeoSelection.state_fips',
-            '	join GeoJSONs on GeoJSONs.id = State_GeoJson.geojson_id',
-            `	where FeatureTypes.name = '${feature}' and State_GeoSelection.state_fips = '${state_fips}';`,
-            ]
-        const query = queryArray.join('\n\t');
-        console.log(query)
-        db.sql_execute_first(query)
-            .then(row => resolve(row))
-            .catch(err => reject(err))
-    })
+exports.getBestGeoJson = async (feature, state_fips) => {
+    const queryArray = [
+        'select geojson,',
+        '	geojsons.id as geojson_id,',
+        '	geo_selections.id as geoselection_id,',
+        '	state_geo_selection.state_fips as state_fips',
+        'from',
+        '    geo_selections join feature_types on feature_types.id = geo_selections.type',
+        '    join state_geo_selection on geo_selections.id = state_geo_selection.geoselection_id',
+        '	join state_geojson on state_geojson.state_fips = state_geo_selection.state_fips',
+        '	join geojsons on geojsons.id = state_geojson.geojson_id',
+        `	where feature_types.name = '${feature}' and state_geo_selection.state_fips = '${state_fips}';`,
+        ]
+    const query = queryArray.join('\n\t');
+    const result = await pgDb.query_first(query);
+    return result;
 }

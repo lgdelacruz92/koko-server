@@ -54,7 +54,7 @@ app.get(dataEndpoints.legend.route, cors(corsOptions), dataEndpoints.legend.hand
 /*
     GeoJSON endpoints
 */
-app.get(geojsonEndpoints.geojson.route, cors(corsOptions), (req, res, next) => geojsonEndpoints.geojson.handler(req, res, next, db));
+app.get(geojsonEndpoints.geojson.route, cors(corsOptions), geojsonEndpoints.geojson.handler);
 app.get(geojsonEndpoints.geoSelections.route, cors(corsOptions), geojsonEndpoints.geoSelections.handler);
 
 app.listen(port, () => {

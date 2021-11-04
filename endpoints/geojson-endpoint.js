@@ -1,58 +1,51 @@
 const { 
-    resourceNotFound,
     getSessionDataJson,
     getGeoJson,
     makeCountyLookup,
     makeCountyDataMap,
     formatGeoJson
  } = require('../modules/utils');
+
 const {
     getSessionData,
     getStateFipsFromGeoSelectionId,
     getGeoSelections,
-    getBestGeoJson 
+    getBestGeoJson,
+    processGeoSelection
 } = require('../modules/common-sql');
 
-const processGeoSelection = (db, geoSelection) => {
-    return new Promise((resolve, reject) => {
-        console.log(geoSelection.command);
-        db.sql_execute(geoSelection.command)
-            .then(geoResults => {
-                resolve(geoResults);
-            })
-            .catch(err => {
-                console.log(err);
-                reject(resourceNotFound());
-            })
-    })
-}
+
 
 exports.geojson = {
     route: '/geo/:feature/geoid/:geoid/session/:token',
-    handler: function(req, res, next, db) {
-        const getGeo = async (req, res, db) => {
-            const token = req.params.token;
-            const feature = req.params.feature;
-            const geoid = req.params.geoid;
-            try {
-                const sessionRow = await getSessionData(db, token);
-                const state_fips = await getStateFipsFromGeoSelectionId(db, geoid);
-                const geoJsonRow = await getBestGeoJson(db, feature, state_fips);
-                const geoSelection = await getGeoSelections(db, geoid);
-                const geoSelectionResults = await processGeoSelection(db, geoSelection);
-                const data = getSessionDataJson(sessionRow);
-                const countyLookup = makeCountyLookup(geoSelectionResults);
-                const dataMap = makeCountyDataMap(data.data, countyLookup);
-                const geoJson = getGeoJson(geoJsonRow);
-                const formattedGeoJson = formatGeoJson(geoJson, dataMap.countyDataMap, dataMap.max_val);
-                res.status(200).json({ formattedGeoJson, dataMap });
-            }
-            catch (err) {
-                res.status(404).send(resourceNotFound());
-            }
-        }
 
-        getGeo(req, res, db);
+    /**
+     * Gets geojson for request
+     * @param {*} req 
+     * @param {*} res 
+     * @param {*} next 
+     * @returns { formattedGeoJson, dataMap }
+     */
+    handler: async (req, res, next) =>  {
+        const token = req.params.token;
+        const feature = req.params.feature;
+        const geoid = req.params.geoid;
+        try {
+            const sessionRow = await getSessionData(token);
+            const state_fips = await getStateFipsFromGeoSelectionId(geoid);
+            const geoJsonRow = await getBestGeoJson(feature, state_fips);
+            const geoSelection = await getGeoSelections(geoid);
+            const geoSelectionResults = await processGeoSelection(geoSelection);
+            const data = getSessionDataJson(sessionRow);
+            const countyLookup = makeCountyLookup(geoSelectionResults);
+            const dataMap = makeCountyDataMap(data.data, countyLookup);
+            const geoJson = getGeoJson(geoJsonRow);
+            const formattedGeoJson = formatGeoJson(geoJson, dataMap.countyDataMap, dataMap.max_val);
+            res.status(200).json({ formattedGeoJson, dataMap });
+        }
+        catch (err) {
+            next(err);
+        }
     }
 }
 
