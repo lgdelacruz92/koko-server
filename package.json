@@ -15,10 +15,10 @@
         "express": "^4.17.1",
         "pg": "^8.7.1",
         "sqlite3": "^5.0.2",
-        "uuid4": "^2.0.2"
+        "uuid4": "^2.0.2",
+        "nodemon": "^2.0.14"
     },
     "devDependencies": {
-        "nodemon": "^2.0.14",
         "yargs": "^17.2.1"
     }
 }
