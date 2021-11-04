@@ -4,12 +4,23 @@ const { resourceNotFound } = require('../modules/utils');
 
 exports.use = {
     route: '/use',
-    handler: function(req, res, next, db) {
-        // assign a session token and give it back to user
+    handler: function(req, res, next, pgDb) {
+        /**
+         * assign a session token and give it back to user
+         * 
+         * success 200
+         * err 500
+         * */
         const sessionToken = uuid4();
-        db.sql_execute(`insert into SessionTokens(token, data) values("${sessionToken}",'${JSON.stringify(req.body)}');`)
-            .then(() => res.status(200).json({ session: sessionToken }))
-            .catch(() => res.status(500).send('Something went wrong. Contact developers in the contact page.'))
+        const data = JSON.stringify(req.body);
+        const query = `insert into session_tokens (token, data) values ('${sessionToken}', '${data}')`;
+        pgDb.query(query)
+            .then(() => {
+                res.status(200).json( { session: sessionToken });
+            })
+            .catch(() => {
+                res.status(500).send('Something went wrong. Contact developers in the contact page.');
+            });
     }
 }
 

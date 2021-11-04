@@ -49,7 +49,7 @@ app.get(stateEndpoints.getStates.route, cors(corsOptions), (req, res, next) => s
 /*
     Data routes
 */
-app.post(dataEndpoints.use.route, cors(corsOptions), (req, res, next) => dataEndpoints.use.handler(req, res, next, db));
+app.post(dataEndpoints.use.route, cors(corsOptions), (req, res, next) => dataEndpoints.use.handler(req, res, next, pgDb));
 app.get(dataEndpoints.legend.route, cors(corsOptions), (req, res) => dataEndpoints.legend.handler(req, res, db));
 
 /*
