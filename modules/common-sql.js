@@ -1,13 +1,20 @@
-exports.getSessionData = (db, token) => {
-    return new Promise((resolve, reject) => {
-        const query = `select * from SessionTokens where token = '${token}'`
-        console.log(query)
-        db.sql_execute_first(query)
-            .then((row) => resolve(row))
-            .catch((err) => reject(err))
-    })
+const { green, red } = require('ansicolor');
+const pgDb = require('../db-pg');
+
+exports.insertSession = async (session, data) => {
+    const query = `insert into session_tokens (token, data) values ('${session}', '${data}')`;
+    await pgDb.query(query);
 }
 
+exports.getSessionData = (token) => {
+    return new Promise((resolve, reject) => {
+        const query = `select * from session_tokens where token = '${token}'`
+        console.log(green(query));
+        pgDb.query_first(query)
+            .then(row => resolve(row))
+            .catch(err => reject(err))
+    })
+}
 
 exports.getStateGeoJSON = (db, stateFips) => {
     return new Promise((resolve, reject) => {

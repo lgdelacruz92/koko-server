@@ -1,17 +1,21 @@
-const { resourceNotFound } = require('../modules/utils');
+const pgDb = require('../db-pg');
 
 exports.getStates = {
     route: '/states',
-    handler: (res, pgDb) => {
-        /**
-         * Gets the list of states and corresponding fips 
-         * */        
-        pgDb.query('select state_name as name, fips from states')
-            .then(queryResult => {
-                res.status(200).json({ states: queryResult.rows });
-            })
-            .catch(() => {
-                res.status(404).send(resourceNotFound());
-            });
+
+    /**
+     * Get states
+     * @param {*} res 
+     * @param {*} pgDb 
+     * @return [{ name, fips }]
+     */
+    handler: async (req, res, next) => {
+        try {
+            const result = await pgDb.query('select state_name as name, fips from states');
+            res.status(200).json({ states: result.rows });
+        }
+        catch(err) {
+            next(err);
+        }
     },
 }

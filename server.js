@@ -1,9 +1,8 @@
 const express = require('express')
 const cors = require('cors')
 const app = express()
-const port = process.env.PORT || 5000
+const port = process.env.PORT || 5000;
 const db = require('./db');
-const pgDb = require('./db-pg');
 const stateEndpoints = require('./endpoints/state-endpoints');
 const dataEndpoints = require('./endpoints/data-endpoints');
 const geojsonEndpoints = require('./endpoints/geojson-endpoint');
@@ -44,19 +43,19 @@ app.get('/query', async (req, res) => {
 /*
     State routes
 */
-app.get(stateEndpoints.getStates.route, cors(corsOptions), (req, res, next) => stateEndpoints.getStates.handler(res, pgDb));
+app.get(stateEndpoints.getStates.route, cors(corsOptions), stateEndpoints.getStates.handler);
 
 /*
     Data routes
 */
-app.post(dataEndpoints.use.route, cors(corsOptions), (req, res, next) => dataEndpoints.use.handler(req, res, next, pgDb));
-app.get(dataEndpoints.legend.route, cors(corsOptions), (req, res) => dataEndpoints.legend.handler(req, res, db));
+app.post(dataEndpoints.use.route, cors(corsOptions), dataEndpoints.use.handler);
+app.get(dataEndpoints.legend.route, cors(corsOptions), dataEndpoints.legend.handler);
 
 /*
     GeoJSON endpoints
 */
 app.get(geojsonEndpoints.geojson.route, cors(corsOptions), (req, res, next) => geojsonEndpoints.geojson.handler(req, res, next, db));
-app.get(geojsonEndpoints.geoSelections.route, cors(corsOptions), (req, res, next) => geojsonEndpoints.geoSelections.handler(res, db));
+app.get(geojsonEndpoints.geoSelections.route, cors(corsOptions), geojsonEndpoints.geoSelections.handler);
 
 app.listen(port, () => {
     console.log(`Example app listening at http://localhost:${port}`)
