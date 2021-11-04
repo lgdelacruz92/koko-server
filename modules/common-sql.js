@@ -6,37 +6,26 @@ exports.insertSession = async (session, data) => {
     await pgDb.query(query);
 }
 
-exports.getSessionData = (token) => {
-    return new Promise((resolve, reject) => {
-        const query = `select * from session_tokens where token = '${token}'`
-        console.log(green(query));
-        pgDb.query_first(query)
-            .then(row => resolve(row))
-            .catch(err => reject(err))
-    })
+exports.getSessionData = async token => {
+    const query = `select * from session_tokens where token = '${token}'`
+    console.log(green(query));
+    const result = await pgDb.query_first(query);
+    return result;
 }
 
-exports.getStateGeoJSON = (db, stateFips) => {
-    return new Promise((resolve, reject) => {
-        const query = `select * from StateCountyGeoJsons where state = '${stateFips}'`
-        console.log(query)
-        db.sql_execute_first(query)
-            .then((row) => resolve(row))
-            .catch((err) => reject(err))
-    })
+exports.getGeoSelections = async () => {
+    const query = 'select geo_selections.id as id, title, feature_types.name as type from geo_selections join feature_types on geo_selections.type = feature_types.id';
+    const geoSelections = await pgDb.query(query);
+    let selectionRows = geoSelections.rows;
+    if (selectionRows.length > 2) {
+        const lastGeo = selectionRows[selectionRows.length - 1];
+        selectionRows.splice(selectionRows.length - 1, 1);
+        selectionRows = [lastGeo].concat(selectionRows);    
+    }
+    return selectionRows;
 }
 
-exports.getCounties = (db, stateFips) => {
-    return new Promise((resolve, reject) => {
-        const query = `select * from County where state = '${stateFips}'`
-        console.log(query)
-        db.sql_execute(query)
-            .then(rows => resolve(rows))
-            .catch(err => reject(err))
-    })
-}
-
-exports.getGeoSelections = async id => {
+exports.getGeoSelectionById = async id => {
     const query = `select * from geo_selections where id = ${id}`;
     const result = await pgDb.query_first(query);
     return result;

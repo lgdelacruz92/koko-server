@@ -9,6 +9,7 @@ const {
 const {
     getSessionData,
     getStateFipsFromGeoSelectionId,
+    getGeoSelectionById,
     getGeoSelections,
     getBestGeoJson,
     processGeoSelection
@@ -34,7 +35,7 @@ exports.geojson = {
             const sessionRow = await getSessionData(token);
             const state_fips = await getStateFipsFromGeoSelectionId(geoid);
             const geoJsonRow = await getBestGeoJson(feature, state_fips);
-            const geoSelection = await getGeoSelections(geoid);
+            const geoSelection = await getGeoSelectionById(geoid);
             const geoSelectionResults = await processGeoSelection(geoSelection);
             const data = getSessionDataJson(sessionRow);
             const countyLookup = makeCountyLookup(geoSelectionResults);
@@ -49,26 +50,15 @@ exports.geojson = {
     }
 }
 
-const listGeoSelections = async (db, res) => {
-    try {
-        const query = 'select GeoSelections.id as id, title, FeatureTypes.name as type from GeoSelections join FeatureTypes on GeoSelections.type = FeatureTypes.id';
-        console.log(query);
-        let geoSelections = await db.sql_execute(query);
-        if (geoSelections.length > 2) {
-            const lastGeo = geoSelections[geoSelections.length - 1];
-            geoSelections.splice(geoSelections.length - 1, 1);
-            geoSelections = [lastGeo].concat(geoSelections);    
-        }
-        res.status(200).json(geoSelections);
-    }
-    catch (err) {
-        res.status(404).send(resourceNotFound('(GeoSelections)'));
-    }
-}
-
 exports.geoSelections = {
     route: '/geo',
-    handler: function (res, db) {
-        listGeoSelections(db,res);
+    handler: async (_, res, next) => {
+        try {
+            const results = await getGeoSelections();
+            res.status(200).json(results);
+        }
+        catch(err) {
+            next(err);
+        }
     }
 }
