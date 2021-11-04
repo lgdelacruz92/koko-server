@@ -281,3 +281,11 @@ else if (argv.state_geojson) {
     }
     main(params);
 }
+else if (argv.state_geo_selection) {
+    const params = {
+        tableName: { sqlite: 'State_GeoSelection', pg: 'state_geo_selection' },
+        tableDependency: { GeoSelections: 'geo_selections' },
+        overrides: null
+    }
+    main(params);
+}
