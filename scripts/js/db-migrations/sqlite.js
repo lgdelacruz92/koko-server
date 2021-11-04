@@ -71,7 +71,7 @@ const getSqliteTableInfo = async tableName => {
     return sqliteTableInfoMap;
 }
 
-const assignPgTypes = (columns, sqliteTableInfo, foreignKeyDefinitions, specifics, ignoreSet) => {
+const assignPgTypes = (columns, sqliteTableInfo, foreignKeyDefinitions, tableDependency, overrides, specifics, ignoreSet) => {
     return columns.map((c) => {
         if (ignoreSet && ignoreSet.has(c)) {
             return ''
@@ -82,14 +82,23 @@ const assignPgTypes = (columns, sqliteTableInfo, foreignKeyDefinitions, specific
 
         let reference = '';
         if (c in foreignKeyDefinitions) {
-            reference = ' ' + makeForeignKeyColumn(c, foreignKeyDefinitions);
+            reference = ' ' + makeForeignKeyColumn(c, foreignKeyDefinitions, tableDependency);
         }
-        return `${c} ${sqliteTableInfo[c].type}${reference}`;
+        let columnType = sqliteTableInfo[c].type;
+        if (overrides && overrides.type) {
+            if (c in overrides.type) {
+                columnType = overrides.type[c];
+            }
+        }
+        if (sqliteTableInfo[c].pk === 1) {
+            columnType = 'serial primary key unique';
+        }
+        return `${c} ${columnType}${reference}`;
     })
 }
 
-const createPgTable = async (pgTableName, columnNames, sqliteTableInfo, foreignKeyDefinitions) => {
-    const columnWithSqliteType = assignPgTypes(columnNames, sqliteTableInfo, foreignKeyDefinitions);
+const createPgTable = async (pgTableName, columnNames, sqliteTableInfo, foreignKeyDefinitions, tableDependency, overrides) => {
+    const columnWithSqliteType = assignPgTypes(columnNames, sqliteTableInfo, foreignKeyDefinitions, tableDependency, overrides);
     const query1 = `drop table if exists ${pgTableName}`;
     await pgQuery(query1);
 
@@ -115,9 +124,12 @@ const insertIntoPgTable = async (row, pgTableName, sqliteTableInfo) => {
     await pgQuery(query);
 }
 
-const makeForeignKeyColumn = (columnName, foreignKeyMap) => {
+const makeForeignKeyColumn = (columnName, foreignKeyMap, tableDependency) => {
     if (columnName in foreignKeyMap) {
-        const table = foreignKeyMap[columnName].table;
+        if (!tableDependency) {
+            throw new Error('No table dependency provided.');
+        }
+        const table = tableDependency[foreignKeyMap[columnName].table];
         const to = foreignKeyMap[columnName].to;
         return `references ${table} (${to})`;
     }
@@ -132,19 +144,22 @@ const getForeignKeyDefinitions = async tableName => {
     }, {})
 }
 
-const main = async () => {
-    const tableName = { sqlite: 'State_GeoSelection', pg: 'state_geoselection' };
+const main = async (params) => {
+    const tableName = params.tableName;
+    const tableDependency = params.tableDependency;
+    const overrides = params.overrides;
     const sqliteResults = await query(`select * from ${tableName.sqlite}`);
     const sqliteTableInfo = await getSqliteTableInfo(tableName);
     const foreignKeyDefinitions = await getForeignKeyDefinitions(tableName);
 
     /** uncomment to make create table for the columns */
     const columnNames = getSqlRowKeys(sqliteResults);
-    await createPgTable(tableName.pg, columnNames, sqliteTableInfo, foreignKeyDefinitions);
+    await createPgTable(tableName.pg, columnNames, sqliteTableInfo, foreignKeyDefinitions, tableDependency, overrides);
 
     sqliteResults.forEach(async (row, i) => {
         try {
             await insertIntoPgTable(row, tableName.pg, sqliteTableInfo);
+            console.log(i, 'finished')
         }
         catch (err) {
             console.log(i, row[i], 'error');
@@ -246,6 +261,23 @@ else if (argv.inspect) {
     });
     console.log(result);
 }
-else {
-    main();
+else if (argv.geojson) {
+    const params = {
+        tableName: { sqlite: 'GeoJSONs', pg: 'geojsons' },
+        tableDependency: { FeatureTypes: 'feature_types' },
+        overrides: {
+            type: {
+                type: 'integer'
+            }
+        }
+    }
+    main(params);
+}
+else if (argv.state_geojson) {
+    const params = {
+        tableName: { sqlite: 'State_GeoJson', pg: 'state_geojson' },
+        tableDependency: { GeoJSONs: 'geojsons' },
+        overrides: null
+    }
+    main(params);
 }

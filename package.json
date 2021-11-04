@@ -4,7 +4,7 @@
     "main": "index.js",
     "license": "MIT",
     "scripts": {
-        "debug": "node scripts/js/db-migrations/sqlite.js",
+        "debug": "node scripts/js/db-migrations/sqlite.js --geojson",
         "start": "node server.js"
     },
     "dependencies": {
