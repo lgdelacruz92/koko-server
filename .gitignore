@@ -26,3 +26,6 @@ scripts/python/us-counties-geojson/counties-albers.json
 stdout.log
 geojson.json
 koko.db-journal
+.env
+yarn-error.log
+yarn.lock

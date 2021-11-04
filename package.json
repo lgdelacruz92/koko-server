@@ -17,6 +17,7 @@
         "uuid4": "^2.0.2"
     },
     "devDependencies": {
-        "nodemon": "^2.0.14"
+        "nodemon": "^2.0.14",
+        "yargs": "^17.2.1"
     }
 }

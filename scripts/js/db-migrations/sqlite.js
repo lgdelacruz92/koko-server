@@ -1,6 +1,9 @@
 const sqlite3 = require('sqlite3').verbose()
 const { Pool } = require('pg')
 require('dotenv').config()
+const yargs = require('yargs/yargs')
+const { hideBin } = require('yargs/helpers')
+const argv = yargs(hideBin(process.argv)).argv
 
 const pgPool = new Pool({
     user: process.env.DB_USER,
@@ -48,18 +51,7 @@ const getSqlRowKeys = (sqlResults) => {
     throw new Error('sqlResults is empty')
 }
 
-const makePgSql = (columns, specifics, ignoreSet) => {
-    return columns.map((c) => {
-        if (ignoreSet.has(c)) {
-            console.log(`ignored '${c}'`)
-            return ''
-        }
-        if (c in specifics) {
-            return `${c} ${specifics[c]}`
-        }
-        return `${c} text`
-    })
-}
+
 
 const getSqlRowValues = (columns, row) => {
     return columns.map(c => {
@@ -70,26 +62,190 @@ const getSqlRowValues = (columns, row) => {
     });
 }
 
-const main = async () => {
-    const tableMap = ['GeoSelections', 'geo_selections'];
-    const sqlResults = await query(`select * from ${tableMap[0]}`)
-    let sqlResultColumns = getSqlRowKeys(sqlResults)
+const getSqliteTableInfo = async tableName => {
+    const sqliteTableInfo = await query(`pragma table_info(${tableName.sqlite})`);
+    const sqliteTableInfoMap = sqliteTableInfo.reduce((prev, cur) => {
+        prev[cur.name] = { ...cur };
+        return prev;
+    }, {})
+    return sqliteTableInfoMap;
+}
 
-    sqlResults.forEach(async (s, i) => {
-        // const cleanApposGeojson = s.geojson.replace(/'/gu, '\'\'');
-        const query = `INSERT INTO ${tableMap[1]} (command, title, type, scale) VALUES ('${s.command}','${s.title}', ${s.type}, ${s.scale})`
-        console.log(query)
-        try {
-            // console.log(i, sqlResults[i].fips, query)
-            await pgQuery(query)
-            console.log(i, s.id, 'done')
+const assignPgTypes = (columns, sqliteTableInfo, foreignKeyDefinitions, specifics, ignoreSet) => {
+    return columns.map((c) => {
+        if (ignoreSet && ignoreSet.has(c)) {
+            return ''
         }
-        catch (err) {
-            console.error(err)
+        if (specifics && c in specifics) {
+            return `${c} ${specifics[c]}`
         }
+
+        let reference = '';
+        if (c in foreignKeyDefinitions) {
+            reference = ' ' + makeForeignKeyColumn(c, foreignKeyDefinitions);
+        }
+        return `${c} ${sqliteTableInfo[c].type}${reference}`;
     })
 }
 
-main()
+const createPgTable = async (pgTableName, columnNames, sqliteTableInfo, foreignKeyDefinitions) => {
+    const columnWithSqliteType = assignPgTypes(columnNames, sqliteTableInfo, foreignKeyDefinitions);
+    const query1 = `drop table if exists ${pgTableName}`;
+    await pgQuery(query1);
 
-// console.log(getSqlRowValues(['a', 'a'], { "a": "O'Brien", "b": "Test"}))
+    const query2 = `create table ${pgTableName} (${columnWithSqliteType.join(',\n\t')});`
+    await pgQuery(query2);
+    console.log(`table created ${pgTableName}`);
+}
+
+const joinValues = cleanValues => {
+    return `${cleanValues.join(',')}`;
+}
+
+const makeInsertQuery = (pgTableName, columnNamesString, valuesString) => {
+    return `insert into ${pgTableName} (${columnNamesString}) values (${valuesString})`;
+}
+
+const insertIntoPgTable = async (row, pgTableName, sqliteTableInfo) => {
+    const cleanValues = cleanStrings(row, sqliteTableInfo);
+
+    const columnNamesString = Object.keys(row).join(',');
+    const valuesString = joinValues(cleanValues);
+    const query = makeInsertQuery(pgTableName, columnNamesString, valuesString);
+    await pgQuery(query);
+}
+
+const makeForeignKeyColumn = (columnName, foreignKeyMap) => {
+    if (columnName in foreignKeyMap) {
+        const table = foreignKeyMap[columnName].table;
+        const to = foreignKeyMap[columnName].to;
+        return `references ${table} (${to})`;
+    }
+    return '';
+}
+
+const getForeignKeyDefinitions = async tableName => {
+    const foreignKeyDefinitions = await query(`pragma foreign_key_list(${tableName.sqlite})`);
+    return foreignKeyDefinitions.reduce((prev, cur) => {
+        prev[cur.from] = {...cur};
+        return prev;
+    }, {})
+}
+
+const main = async () => {
+    const tableName = { sqlite: 'State_GeoSelection', pg: 'state_geoselection' };
+    const sqliteResults = await query(`select * from ${tableName.sqlite}`);
+    const sqliteTableInfo = await getSqliteTableInfo(tableName);
+    const foreignKeyDefinitions = await getForeignKeyDefinitions(tableName);
+
+    /** uncomment to make create table for the columns */
+    const columnNames = getSqlRowKeys(sqliteResults);
+    await createPgTable(tableName.pg, columnNames, sqliteTableInfo, foreignKeyDefinitions);
+
+    sqliteResults.forEach(async (row, i) => {
+        try {
+            await insertIntoPgTable(row, tableName.pg, sqliteTableInfo);
+        }
+        catch (err) {
+            console.log(i, row[i], 'error');
+            console.log(err);
+        }
+    })
+
+}
+
+const assert = (a, b) => {
+    if (a !== b) {
+        console.log(`${a} !== ${b}`);
+    }
+    else {
+        console.log('Pass')
+    }
+}
+
+const testColumns2 = ['column_1', 'column_2', 'column_3'];
+
+const testTableInfo = { 
+    'column_1': {
+        type: 'text'
+    },
+    'column_2': {
+        type: 'text'
+    },
+    'column_3': {
+        type: 'integer'
+    }
+}
+
+const cleanStrings = (row, tableInfo) => {
+    const columnNames = Object.keys(row);
+    return columnNames.map(c => {
+        if (tableInfo[c].type === 'text') {
+            let result = row[c];
+            if (result.includes('\'')) {
+                result = result.replace(/[']/gu,'\'\'');
+            }
+            return `\'${result}\'`
+        }
+        else if (tableInfo[c].type === 'integer') {
+            return parseInt(row[c]);
+        }
+        return row[c];
+    });
+
+}
+
+const expected2 = ['\'O\'\'Brien\'', '\'Tim\'', 2];
+const testCleanStrings = () => {
+    const row = { column_1: 'O\'Brien', column_2: 'Tim', column_3: '2' };
+    const result = cleanStrings(row, testTableInfo);
+    assert(JSON.stringify(expected2), JSON.stringify(result))
+}
+
+const testJoinValues = () => {
+    const result = joinValues(expected2);
+    assert('\'O\'\'Brien\',\'Tim\',2', result);
+}
+
+const testMakeInsertQuery = () => {
+    const row = { column_1: 'O\'Brien', column_2: 'Tim', column_3: '2' };
+
+    const cleanValues = cleanStrings(row, testTableInfo);
+    const valueStrings = joinValues(cleanValues);
+    const columnNamesString = `${testColumns2.join(',')}`;
+
+    const result = makeInsertQuery('state', columnNamesString, valueStrings);
+    const expected = 'insert into state (column_1,column_2,column_3) values (\'O\'\'Brien\',\'Tim\',2)';
+    assert(expected, result);
+}
+
+const tests = () => {
+    testCleanStrings();
+    testJoinValues();
+    testMakeInsertQuery();
+}
+
+if (argv.test) {
+    tests();
+}
+else if (argv.inspect) {
+
+    // getForeignKeyDefinitions({ sqlite: 'State_GeoSelection' })
+    //     .then(result => {
+    //         console.log(result);
+    //     })
+
+    const result = makeForeignKeyColumn('column_1', { 
+        column_1: {
+            id: 0,
+            seq: 0,
+            table: 'Table',
+            from: 'column_1',
+            to: 'id',
+        }
+    });
+    console.log(result);
+}
+else {
+    main();
+}
