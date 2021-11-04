@@ -12,7 +12,7 @@ const pool = new Pool({
 })
 
 exports.query = async query => {
-    return new Promise(async (resolve) => {
+    return new Promise(async (resolve, reject) => {
         console.log(green(query));
         try {
             const result = await pool.query(query);
