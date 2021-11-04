@@ -1,5 +1,6 @@
 const { Pool } = require('pg')
 require('dotenv').config()
+const { green, red } = require('ansicolor');
 
 const pool = new Pool({
     user: process.env.DB_USER,
@@ -10,17 +11,16 @@ const pool = new Pool({
     ssl: { rejectUnauthorized: false }
 })
 
-exports.pool = pool
-console.log(process.env)
-pool.connect((err, client, release) => {
-    if (err) {
-        return console.error('Error acquiring client', err.stack)
-    }
-    client.query('SELECT * FROM users', (err, result) => {
-        release()
-        if (err) {
-            return console.error('Error executing query', err.stack)
+exports.query = async query => {
+    return new Promise(async (resolve) => {
+        console.log(green(query));
+        try {
+            const result = await pool.query(query);
+            resolve(result);
         }
-        console.log(result.rows)
-    })
-})
+        catch (err) {
+            console.log(red(err));
+            reject(err);
+        }
+    });
+}

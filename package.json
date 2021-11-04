@@ -5,9 +5,10 @@
     "license": "MIT",
     "scripts": {
         "debug": "node scripts/js/db-migrations/sqlite.js --geojson",
-        "start": "node server.js"
+        "start": "nodemon server.js"
     },
     "dependencies": {
+        "ansicolor": "^1.1.95",
         "body-parser": "^1.19.0",
         "cors": "^2.8.5",
         "dotenv": "^10.0.0",

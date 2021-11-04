@@ -3,6 +3,7 @@ const cors = require('cors')
 const app = express()
 const port = process.env.PORT || 5000
 const db = require('./db');
+const pgDb = require('./db-pg');
 const stateEndpoints = require('./endpoints/state-endpoints');
 const dataEndpoints = require('./endpoints/data-endpoints');
 const geojsonEndpoints = require('./endpoints/geojson-endpoint');
@@ -30,12 +31,20 @@ app.use(function(req, res, next) {
 
 app.get('/ping', (req, res) => res.send('Success'));
 
+app.get('/query', async (req, res) => {
+    try {
+        const result = await pgDb.query('select * from feature_types');
+        res.status(200).json(result);
+    }
+    catch(err) {
+        res.status(404).send(err);
+    }
+})
+
 /*
     State routes
 */
-app.get(stateEndpoints.search.route, cors(corsOptions), (req, res, next) => stateEndpoints.search.handler(req, res, next, db));
-app.post(stateEndpoints.makeSvg.route, cors(corsOptions), (req, res, next) => stateEndpoints.makeSvg.handler(req, res, next, db));
-app.get(stateEndpoints.getStates.route, cors(corsOptions), (req, res, next) => stateEndpoints.getStates.handler(res, db));
+app.get(stateEndpoints.getStates.route, cors(corsOptions), (req, res, next) => stateEndpoints.getStates.handler(res, pgDb));
 
 /*
     Data routes
