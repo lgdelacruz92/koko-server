@@ -12,5 +12,10 @@
         "topojson"
     ],
     "workbench.colorTheme": "Winter is Coming (Dark Black - No Italics)",
-    "python.autoComplete.extraPaths": ["./modules"],
+    "python.autoComplete.extraPaths": [
+        "./modules"
+    ],
+    "python.analysis.extraPaths": [
+        "./modules"
+    ],
 }
