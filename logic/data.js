@@ -2,9 +2,14 @@ const pgDb = require('../db-pg');
 
 exports.setSessionTokenMetadata = async (token, metadata) => {
     const metaDataString = JSON.stringify(metadata);
-    const columns = ['session_token', 'metadata'];
-    const values = [{ value: token, type: 'string'}, { value: metaDataString, type: 'string' }]
-    await pgDb.insert('session_tokens_metadata', columns, values);
+    const value = { value: metaDataString, type: 'string' };
+    const identifier = {
+        column: 'session_token',
+        value: {
+            type: 'string', value: token
+        }
+    }
+    await pgDb.update('session_tokens_metadata', 'metadata', value, identifier);
 }
 
 exports.getSessionTokenMetadata = async token => {

@@ -2,7 +2,7 @@ const { Pool } = require('pg')
 require('dotenv').config()
 const { green } = require('ansicolor');
 const { ResourceNotFound } = require('./modules/errors');
-const { cleanString } = require('./modules/utils');
+const { cleanString, quote } = require('./modules/utils');
 
 const pool = new Pool({
     user: process.env.DB_USER,
@@ -37,4 +37,15 @@ exports.insert = async (table, columns, values) => {
     const insertQuery = `insert into ${table} (${columnNames}) values (${cleanValues.join(',')})`;
 
     await pool.query(insertQuery);
+}
+
+exports.update = async (table, column, value, identifier) => {
+    const cleanValue = value.type === 'string' ? `'${cleanString(value.value)}'` : `'${value.value}'`
+    const cleanIdentifierValue = identifier.value.type === 'string' ? quote(cleanString(identifier.value.value)) : quote(identifier.value.value);
+    const updateQuery = `
+        update ${table}
+        set ${column} = ${cleanValue}
+        where ${identifier.column} = ${cleanIdentifierValue}
+    `;
+    await pool.query(updateQuery);
 }

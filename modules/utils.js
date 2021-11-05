@@ -53,3 +53,7 @@ exports.formatGeoJson = (geojson, countyDataMap, max_val) => {
 exports.cleanString = string => {
     return string.replace(/[']/gu,'\'\'');
 }
+
+exports.quote = string => {
+    return `'${string}'`
+}

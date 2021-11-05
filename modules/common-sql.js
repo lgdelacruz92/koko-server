@@ -4,6 +4,10 @@ const pgDb = require('../db-pg');
 exports.insertSession = async (session, data) => {
     const query = `insert into session_tokens (token, data) values ('${session}', '${data}')`;
     await pgDb.query(query);
+
+    // also insert an empty metadata
+    const values = [ { type: 'string', value: session }, { type: 'string', value: '{}' } ];
+    await pgDb.insert('session_tokens_metadata', ['session_token', 'metadata'], values);
 }
 
 exports.getSessionData = async token => {
