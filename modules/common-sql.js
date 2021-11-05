@@ -1,4 +1,4 @@
-const { green, red } = require('ansicolor');
+const { green } = require('ansicolor');
 const pgDb = require('../db-pg');
 
 exports.insertSession = async (session, data) => {
@@ -7,7 +7,11 @@ exports.insertSession = async (session, data) => {
 }
 
 exports.getSessionData = async token => {
-    const query = `select * from session_tokens where token = '${token}'`
+    const query = `
+        select * from session_tokens
+            join session_tokens_metadata on token = session_token
+            where token = '${token}'
+    `
     console.log(green(query));
     const result = await pgDb.query_first(query);
     return result;

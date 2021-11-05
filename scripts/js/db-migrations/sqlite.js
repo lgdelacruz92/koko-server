@@ -200,7 +200,7 @@ const cleanStrings = (row, tableInfo) => {
             if (result.includes('\'')) {
                 result = result.replace(/[']/gu,'\'\'');
             }
-            return `\'${result}\'`
+            return `'${result}'`
         }
         else if (tableInfo[c].type === 'integer') {
             return parseInt(row[c]);

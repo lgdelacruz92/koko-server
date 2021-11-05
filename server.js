@@ -49,6 +49,9 @@ app.get(stateEndpoints.getStates.route, cors(corsOptions), stateEndpoints.getSta
     Data routes
 */
 app.post(dataEndpoints.use.route, cors(corsOptions), dataEndpoints.use.handler);
+app.post(dataEndpoints.session_token_metadata.route, cors(corsOptions), dataEndpoints.session_token_metadata.handler);
+
+app.get(dataEndpoints.get_session_token_metadata.route, cors(corsOptions), dataEndpoints.get_session_token_metadata.handler);
 app.get(dataEndpoints.legend.route, cors(corsOptions), dataEndpoints.legend.handler);
 
 /*

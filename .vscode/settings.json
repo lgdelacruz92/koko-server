@@ -6,6 +6,7 @@
         "geoselection",
         "koko",
         "ndjson",
+        "postgress",
         "stopwords",
         "svgs",
         "topo",

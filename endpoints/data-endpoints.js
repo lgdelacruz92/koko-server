@@ -3,6 +3,10 @@ const {
     getSessionData,
     insertSession
 } = require('../modules/common-sql');
+const {
+    setSessionTokenMetadata,
+    getSessionTokenMetadata
+} = require('../logic/data');
 
 exports.use = {
     route: '/use',
@@ -50,4 +54,46 @@ exports.legend = {
             next(err);
         }
     }
+}
+
+exports.session_token_metadata = {
+    route: '/session_token_metadata',
+
+    /** 
+     * Adds extra info about the session
+     * 
+     * @return {void}
+    */
+    handler: async (req, res, next) => {
+        try {
+            const body = req.body;
+            const token = body.token;
+            const metadata = body.metadata;
+            await setSessionTokenMetadata(token, metadata);
+            res.status(200).send('success');
+        }
+        catch(err) {
+            next(err);
+        }
+    }
+}
+
+exports.get_session_token_metadata = {
+    route: '/session_token_metadata/:token',
+
+    /** 
+     * Gets the metadata for a particular session
+     * 
+     * @return { metadata }
+    */
+    handler: async (req, res, next) => {
+       try {
+            const token = req.params.token;
+            const metadata = await getSessionTokenMetadata(token);
+            res.status(200).json(metadata);
+       }
+       catch(err) {
+           next(err);
+       }
+   }
 }

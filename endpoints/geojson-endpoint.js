@@ -16,7 +16,6 @@ const {
 } = require('../modules/common-sql');
 
 
-
 exports.geojson = {
     route: '/geo/:feature/geoid/:geoid/session/:token',
 
@@ -42,7 +41,7 @@ exports.geojson = {
             const dataMap = makeCountyDataMap(data.data, countyLookup);
             const geoJson = getGeoJson(geoJsonRow);
             const formattedGeoJson = formatGeoJson(geoJson, dataMap.countyDataMap, dataMap.max_val);
-            res.status(200).json({ formattedGeoJson, dataMap });
+            res.status(200).json({ formattedGeoJson });
         }
         catch (err) {
             next(err);
