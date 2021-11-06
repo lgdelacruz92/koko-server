@@ -5,7 +5,8 @@ const {
 } = require('../modules/common-sql');
 const {
     setSessionTokenMetadata,
-    getSessionTokenMetadata
+    getSessionTokenMetadata,
+    copyDefaultSession
 } = require('../logic/data');
 
 exports.use = {
@@ -87,13 +88,32 @@ exports.get_session_token_metadata = {
      * @return { metadata }
     */
     handler: async (req, res, next) => {
-       try {
+        try {
             const token = req.params.token;
             const metadata = await getSessionTokenMetadata(token);
             res.status(200).json(metadata);
-       }
-       catch(err) {
-           next(err);
-       }
+        }
+        catch(err) {
+            next(err);
+        }
    }
+}
+
+exports.makeDefaultSession = {
+    route: '/default',
+
+    /**
+     * Makes a default session data from a copy of the default
+     * 
+     * @return { session: token }
+     */
+    handler: async (_, res, next) => {
+        try {
+            const token = await copyDefaultSession();
+            res.status(200).json({ session: token })
+        }
+        catch(err) {
+            next(err);
+        }
+    }
 }

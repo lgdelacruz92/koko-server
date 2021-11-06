@@ -2,15 +2,11 @@ const express = require('express')
 const cors = require('cors')
 const app = express()
 const port = process.env.PORT || 5000;
-const db = require('./db');
 const stateEndpoints = require('./endpoints/state-endpoints');
 const dataEndpoints = require('./endpoints/data-endpoints');
 const geojsonEndpoints = require('./endpoints/geojson-endpoint');
+const pgDb = require('./db-pg');
 require('dotenv').config()
-
-python = '/usr/local/bin/python3'
-cwd = process.cwd()
-
 
 const corsOptions = {
   origin: ['http://localhost:3000', 'http://localhost:6006']
@@ -53,6 +49,7 @@ app.post(dataEndpoints.session_token_metadata.route, cors(corsOptions), dataEndp
 
 app.get(dataEndpoints.get_session_token_metadata.route, cors(corsOptions), dataEndpoints.get_session_token_metadata.handler);
 app.get(dataEndpoints.legend.route, cors(corsOptions), dataEndpoints.legend.handler);
+app.post(dataEndpoints.makeDefaultSession.route, cors(corsOptions), dataEndpoints.makeDefaultSession.handler);
 
 /*
     GeoJSON endpoints
