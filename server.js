@@ -46,10 +46,12 @@ app.get(stateEndpoints.getStates.route, cors(corsOptions), stateEndpoints.getSta
 */
 app.post(dataEndpoints.use.route, cors(corsOptions), dataEndpoints.use.handler);
 app.post(dataEndpoints.session_token_metadata.route, cors(corsOptions), dataEndpoints.session_token_metadata.handler);
+app.post(dataEndpoints.makeDefaultSession.route, cors(corsOptions), dataEndpoints.makeDefaultSession.handler);
+app.post(dataEndpoints.emailRequest.route, cors(corsOptions), dataEndpoints.emailRequest.handler);
 
 app.get(dataEndpoints.get_session_token_metadata.route, cors(corsOptions), dataEndpoints.get_session_token_metadata.handler);
 app.get(dataEndpoints.legend.route, cors(corsOptions), dataEndpoints.legend.handler);
-app.post(dataEndpoints.makeDefaultSession.route, cors(corsOptions), dataEndpoints.makeDefaultSession.handler);
+
 
 /*
     GeoJSON endpoints

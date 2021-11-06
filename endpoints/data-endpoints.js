@@ -6,7 +6,8 @@ const {
 const {
     setSessionTokenMetadata,
     getSessionTokenMetadata,
-    copyDefaultSession
+    copyDefaultSession,
+    insertEmailRequest
 } = require('../logic/data');
 
 exports.use = {
@@ -113,6 +114,27 @@ exports.makeDefaultSession = {
             res.status(200).json({ session: token })
         }
         catch(err) {
+            next(err);
+        }
+    }
+}
+
+exports.emailRequest = {
+    route: '/request',
+
+    /**
+     * Api for sending recording email request
+     * 
+     * @return { success: true }
+     */
+    handler: async (req, res, next) => {
+        try {
+            const token = req.body.token;
+            const email = req.body.email;
+            await insertEmailRequest(token, email);
+            res.status(200).json({ success: true, email });
+        }
+        catch (err) {
             next(err);
         }
     }

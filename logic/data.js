@@ -45,3 +45,17 @@ exports.copyDefaultSession = async () => {
     // Sql copy new and add in new token;
     return newToken;
 }
+
+exports.insertEmailRequest = async (token, email) => {
+    const insertEmailRequestQuery = `
+        insert into email_requests (
+            session_token,
+            email
+        )
+        values (
+            '${token}',
+            '${email}'
+        )
+    `
+    await pgDb.query(insertEmailRequestQuery);
+}
